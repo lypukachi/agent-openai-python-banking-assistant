@@ -38,6 +38,13 @@ export default function AIAgent() {
     content: "Summarize my Platinum Visa spending from the past 30 days",
   },
   {
+    id: "card-waiver",
+    title: "Request card waiver",
+    description: "Ask for a credit card fee waiver",
+    icon: "💸",
+    content: "Please submit an annual fee waiver for my credit card 55555 because I am a long-term customer",
+  },
+  {
     id: "transactions-search",
     title: "Investigate payments",
     description: "Search through your payments based on various criteria.",

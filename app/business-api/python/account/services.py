@@ -1,6 +1,7 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 from models import Account, PaymentMethod, PaymentMethodSummary, Beneficiary, Card
 import logging
+from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 
@@ -166,6 +167,23 @@ class CardService:
             raise RuntimeError("Insufficient available balance")
         card.balance = round(balance - amount, 2)
         return card
+
+    def request_credit_card_fee_waiver(self, card_id: str, reason: str) -> Dict[str, str]:
+        logger.info("Request to request_credit_card_fee_waiver card_id=%s", card_id)
+        if not reason or len(reason.strip()) < 3:
+            raise ValueError("Reason must contain at least 3 characters")
+
+        card = self._require_card(card_id)
+        if card.type != "credit":
+            raise RuntimeError("Annual fee waiver is supported only for credit cards")
+
+        request_id = f"waiver-{uuid4().hex[:8]}"
+        return {
+            "requestId": request_id,
+            "cardId": card_id,
+            "status": "submitted",
+            "message": "Your annual fee waiver request has been submitted for review.",
+        }
 
 
 # shared singleton (cards are stored in memory here)

@@ -42,3 +42,15 @@ def get_credit_cards(accountId: Annotated[str, "Unique identifier for the user a
 def get_card_details(cardId: Annotated[str, "Unique identifier for the card"]):
     logger.info("Request to getCardDetails with cardId: %s", cardId)
     return card_service_singleton.get_card_details(cardId)
+
+
+@mcp.tool(
+    name="requestCreditCardFeeWaiver",
+    description="Submit a credit card annual fee waiver request for a card"
+)
+def request_credit_card_fee_waiver(
+    cardId: Annotated[str, "Unique identifier for the card"],
+    reason: Annotated[str, "Reason provided by the customer for annual fee waiver request"]
+):
+    logger.info("Request to requestCreditCardFeeWaiver with cardId: %s", cardId)
+    return card_service_singleton.request_credit_card_fee_waiver(cardId, reason)

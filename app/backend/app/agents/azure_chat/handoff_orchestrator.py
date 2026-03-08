@@ -22,6 +22,7 @@ class HandoffOrchestrator:
       
       # Triage rules
       - If the user request is related to bank account information like account balance, payment methods, cards and beneficiaries book you must call handoff_to_AccountAgent.
+      - If the user requests a credit card annual fee waiver, card fee reversal, or card fee refund, you must call handoff_to_AccountAgent.
       - If the user request is related to banking movements and payments history, you must call handoff_to_TransactionHistoryAgent.
       - If the user request is related to initiate a payment request, upload a bill or invoice image for payment or manage an on-going payment process, you must call handoff_to_PaymentAgent.
       - If the user request is not related to account, transactions or payments you must respond to the user that you are not able to help with the request.

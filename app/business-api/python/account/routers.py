@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List
 import logging
 
-from models import Card
+from models import Card, CardWaiverRequest, CardWaiverResponse
 from services import card_service_singleton
 
 logger = logging.getLogger(__name__)
@@ -84,4 +84,22 @@ def pay_with_card(card_id: str, request: CardAmountRequest):
         raise _to_runtime_http_error(re)
     except Exception:
         logger.exception("Unexpected error during payment")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+
+@router.post("/cards/{card_id}/annual-fee-waiver", response_model=CardWaiverResponse)
+def request_annual_fee_waiver(card_id: str, request: CardWaiverRequest):
+    """Submit a credit card annual fee waiver request."""
+    logger.info("Annual fee waiver request card_id=%s", card_id)
+    try:
+        result = card_service_singleton.request_credit_card_fee_waiver(card_id, request.reason)
+        return CardWaiverResponse(**result)
+    except ValueError as ve:
+        logger.exception("Validation error during annual fee waiver request")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except RuntimeError as re:
+        logger.exception("Runtime error during annual fee waiver request")
+        raise _to_runtime_http_error(re)
+    except Exception:
+        logger.exception("Unexpected error during annual fee waiver request")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")

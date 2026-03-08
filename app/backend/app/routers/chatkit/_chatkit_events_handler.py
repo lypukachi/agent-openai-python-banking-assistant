@@ -62,6 +62,10 @@ event_description_map = {
     "getCardTransactions": {
         "start": "Looking up transactions for your credit card...",
         "end": "Retrieved transactions for your credit card"
+    },
+    "requestCreditCardFeeWaiver": {
+        "start": "Submitting your credit card annual fee waiver request...",
+        "end": "Submitted your credit card annual fee waiver request"
     }
 
 

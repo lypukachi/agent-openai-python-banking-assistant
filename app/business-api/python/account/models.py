@@ -54,3 +54,14 @@ class Account(BaseModel):
     activationDate: Optional[str] = None
     balance: Optional[str] = None
     paymentMethods: Optional[List[PaymentMethodSummary]] = None
+
+
+class CardWaiverRequest(BaseModel):
+    reason: str = Field(..., min_length=3, description="Reason for requesting annual fee waiver")
+
+
+class CardWaiverResponse(BaseModel):
+    requestId: str
+    cardId: str
+    status: str
+    message: str

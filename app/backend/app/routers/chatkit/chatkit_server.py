@@ -50,6 +50,7 @@ else:
 from app.common.chatkit.types import ClientWidgetItem, CustomThreadItemDoneEvent
 
 from .attachement_store import AttachmentMetadataStore
+from .routing_hints import augment_user_message_for_routing
 
 from .memory_store import MemoryStore
 from .sqllite_store import SQLiteStore
@@ -161,7 +162,7 @@ class BankingAssistantChatKitServer(ChatKitServer[dict[str, Any]]):
                 #get last message
                 last_message = agent_messages[-1]
 
-                expanded_text_with_attachements = last_message.text
+                expanded_text_with_attachements = augment_user_message_for_routing(last_message.text)
                 
 
                 if attachment_ids:
@@ -460,4 +461,3 @@ class BankingAssistantChatKitServer(ChatKitServer[dict[str, Any]]):
 
             case _:
                 assert_never(request)
-
