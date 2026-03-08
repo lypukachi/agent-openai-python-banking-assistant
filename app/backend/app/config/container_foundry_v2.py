@@ -9,6 +9,7 @@ from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.storage.blob import BlobServiceClient
 from app.helpers.blob_proxy import BlobStorageProxy
 from app.tools.document_intelligence_scanner import DocumentIntelligenceInvoiceScanHelper
+from app.tools.company_website_fetcher import CompanyWebsiteFetcher
 from app.config.azure_credential import get_azure_credential, get_async_azure_credential
 from app.config.settings import settings
 
@@ -18,6 +19,7 @@ from app.agents.foundry_v2.handoff_orchestrator import HandoffOrchestrator as Ha
 from app.agents.foundry_v2.account_agent import AccountAgent as AccountAgentChatKit
 from app.agents.foundry_v2.transaction_agent import TransactionHistoryAgent as TransactionHistoryAgentChatKit
 from app.agents.foundry_v2.payment_agent import PaymentAgent as PaymentAgentChatKit
+from app.agents.foundry_v2.company_web_agent import CompanyWebAgent as CompanyWebAgentChatKit
 
 
 class Container(containers.DeclarativeContainer):
@@ -48,6 +50,11 @@ class Container(containers.DeclarativeContainer):
         DocumentIntelligenceInvoiceScanHelper,
         client=document_intelligence_client,
         blob_storage_proxy=blob_proxy
+    )
+
+    company_website_fetcher = providers.Singleton(
+        CompanyWebsiteFetcher,
+        default_websites=settings.COMPANY_WEBSITES
     )
     
 
@@ -88,6 +95,13 @@ class Container(containers.DeclarativeContainer):
     document_scanner_helper=document_intelligence_scanner
     )
 
+    company_web_agent_chatkit = providers.Factory(
+    CompanyWebAgentChatKit,
+    azure_ai_client=_azure_ai_client,
+    company_website_fetcher=company_website_fetcher,
+    configured_websites=settings.COMPANY_WEBSITES
+    )
+
     # A specialized chatkit Supervisor Agent implemented using agent framework handoff built-in orchestration with Azure chat based agents. 
     # A per request instance is created as based on recommendation from agent framework team about managing workflow instance.
     handoff_orchestrator_chatkit = providers.Factory(
@@ -95,6 +109,7 @@ class Container(containers.DeclarativeContainer):
         azure_ai_client=_azure_ai_client,
         account_agent=account_agent_chatkit,
         transaction_agent=transaction_agent_chatkit,
-        payment_agent=payment_agent_chatkit
+        payment_agent=payment_agent_chatkit,
+        company_web_agent=company_web_agent_chatkit
     )
    

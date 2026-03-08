@@ -7,6 +7,7 @@ from agent_framework.azure import AzureOpenAIChatClient
 from app.agents.azure_chat.account_agent import AccountAgent
 from app.agents.azure_chat.transaction_agent import TransactionHistoryAgent
 from app.agents.azure_chat.payment_agent import PaymentAgent
+from app.agents.azure_chat.company_web_agent import CompanyWebAgent
 from uuid import uuid4
 import logging
 
@@ -16,7 +17,7 @@ class HandoffOrchestrator:
     
     triage_instructions = """
       You are a banking customer support agent triaging customer requests about their banking account, movements, payments.
-      You have to evaluate the whole conversation with the customer and handoff to AccountAgent, TransactionHistoryAgent, PaymentAgent. 
+      You have to evaluate the whole conversation with the customer and handoff to AccountAgent, TransactionHistoryAgent, PaymentAgent, CompanyWebAgent.
       When delegation is required, call the matching handoff too based on triage rules.
       
       
@@ -25,7 +26,8 @@ class HandoffOrchestrator:
       - If the user requests a credit card annual fee waiver, card fee reversal, or card fee refund, you must call handoff_to_AccountAgent.
       - If the user request is related to banking movements and payments history, you must call handoff_to_TransactionHistoryAgent.
       - If the user request is related to initiate a payment request, upload a bill or invoice image for payment or manage an on-going payment process, you must call handoff_to_PaymentAgent.
-      - If the user request is not related to account, transactions or payments you must respond to the user that you are not able to help with the request.
+      - If the user asks to retrieve or compare information from one or many company websites, you must call handoff_to_CompanyWebAgent.
+      - If the user request is not related to account, transactions, payments, or company website information you must respond to the user that you are not able to help with the request.
 
       
     """
@@ -40,12 +42,14 @@ class HandoffOrchestrator:
                  azure_chat_client: AzureOpenAIChatClient,
                  account_agent: AccountAgent,
                  transaction_agent: TransactionHistoryAgent,
-                 payment_agent: PaymentAgent
+                 payment_agent: PaymentAgent,
+                 company_web_agent: CompanyWebAgent
                                 ):
       self.azure_chat_client = azure_chat_client
       self.account_agent = account_agent
       self.transaction_agent = transaction_agent
       self.payment_agent = payment_agent
+      self.company_web_agent = company_web_agent
       self.workflow = None  # Will be initialized in async method
 
     async def initialize(self, checkpoint_storage: CheckpointStorage ):
@@ -62,7 +66,8 @@ class HandoffOrchestrator:
             participants=[triage_agent, 
                           await self.account_agent.build_af_agent(),
                           await self.transaction_agent.build_af_agent(),
-                          await self.payment_agent.build_af_agent()],
+                          await self.payment_agent.build_af_agent(),
+                          await self.company_web_agent.build_af_agent()],
         )
         .with_start_agent(triage_agent)
         .with_termination_condition(

@@ -31,6 +31,13 @@ const BANKING_STARTER_PROMPTS: StarterPrompt[] = [
     icon: "🛡️",
     content: "when was last time I've paid contoso?",
   },
+  {
+    id: "open-savings-account",
+    title: "Open a savings account",
+    description: "Learn how to open a savings bank account",
+    icon: "🏦",
+    content: "How to open saving bank account?",
+  },
 ];
 
 export default function Support() {

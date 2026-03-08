@@ -66,6 +66,10 @@ event_description_map = {
     "requestCreditCardFeeWaiver": {
         "start": "Submitting your credit card annual fee waiver request...",
         "end": "Submitted your credit card annual fee waiver request"
+    },
+    "fetchCompanyWebsiteContent": {
+        "start": "Retrieving information from company website(s)...",
+        "end": "Retrieved company website information"
     }
 
 

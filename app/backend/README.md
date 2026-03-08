@@ -65,6 +65,9 @@ AZURE_STORAGE_ACCOUNT=your-storage-account
 ACCOUNT_MCP_URL=http://localhost:8070
 TRANSACTION_MCP_URL=http://localhost:8071
 PAYMENT_MCP_URL=http://localhost:8072
+
+# Company/Bank websites for CompanyWebAgent (comma/newline/semicolon separated)
+COMPANY_WEBSITES=https://www.contoso.com,https://www.fabrikam.com
 ```
 
 #### 6. Run the development server

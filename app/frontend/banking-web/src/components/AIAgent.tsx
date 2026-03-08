@@ -51,6 +51,13 @@ export default function AIAgent() {
     icon: "🛡️",
     content: "when was last time I've paid contoso?",
   },
+  {
+    id: "open-savings-account",
+    title: "Open a savings account",
+    description: "Learn how to open a savings bank account",
+    icon: "🏦",
+    content: "How to open saving bank account?",
+  },
 ];
   
     // Configure which HTTP status codes should allow retry

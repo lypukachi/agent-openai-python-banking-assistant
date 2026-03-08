@@ -80,6 +80,9 @@ class Settings(BaseSettings):
     TRANSACTION_MCP_URL: str | None= Field(default=None,description="MCP server URL (required)", min_length=1)
     PAYMENT_MCP_URL: str | None= Field(default=None,description="MCP server URL (required)", min_length=1)
 
+    # Company/bank websites for website Q&A agent (comma or newline separated URLs)
+    COMPANY_WEBSITES: str | None = Field(default=None)
+
     # Support for User Assigned Managed Identity: empty means system-managed
     AZURE_CLIENT_ID: str  | None = Field(default="system-managed-identity")
 

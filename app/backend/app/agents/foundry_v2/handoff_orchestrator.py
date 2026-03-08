@@ -6,6 +6,7 @@ from agent_framework.azure import AzureAIClient
 from app.agents.foundry_v2.account_agent import AccountAgent
 from app.agents.foundry_v2.transaction_agent import TransactionHistoryAgent
 from app.agents.foundry_v2.payment_agent import PaymentAgent
+from app.agents.foundry_v2.company_web_agent import CompanyWebAgent
 from uuid import uuid4
 import logging
 
@@ -51,6 +52,13 @@ def handoff_to_transaction_history_agent(context: str | None = None) -> str:
 def handoff_to_payment_agent(context: str | None = None) -> str:
     """Transfer the conversation to the payment agent."""
     return "Handoff to PaymentAgent"
+
+@tool(
+    name="handoff_to_CompanyWebAgent", description="Handoff to the company-web agent."
+)
+def handoff_to_company_web_agent(context: str | None = None) -> str:
+    """Transfer the conversation to the company web agent."""
+    return "Handoff to CompanyWebAgent"
 
 class CustomHandoffAgentExecutor(HandoffAgentExecutor):
     """Custom executor with overridden handoff tool generation."""
@@ -105,7 +113,7 @@ class HandoffOrchestrator:
     
     triage_instructions = """
       You are a banking customer support agent triaging customer requests about their banking account, movements, payments.
-      You have to evaluate the whole conversation with the customer and handoff to AccountAgent, TransactionHistoryAgent, PaymentAgent. 
+      You have to evaluate the whole conversation with the customer and handoff to AccountAgent, TransactionHistoryAgent, PaymentAgent, CompanyWebAgent.
       When delegation is required, call the matching handoff too based on triage rules.
       
       
@@ -114,7 +122,8 @@ class HandoffOrchestrator:
       - If the user requests a credit card annual fee waiver, card fee reversal, or card fee refund, you must call handoff_to_AccountAgent.
       - If the user request is related to banking movements and payments history, you must call handoff_to_TransactionHistoryAgent.
       - If the user request is related to initiate a payment request, upload a bill or invoice image for payment or manage an on-going payment process, you must call handoff_to_PaymentAgent.
-      - If the user request is not related to account, transactions or payments you must respond to the user that you are not able to help with the request.
+      - If the user asks to retrieve or compare information from one or many company websites, you must call handoff_to_CompanyWebAgent.
+      - If the user request is not related to account, transactions, payments, or company website information you must respond to the user that you are not able to help with the request.
 
       
     """
@@ -129,12 +138,14 @@ class HandoffOrchestrator:
                  azure_ai_client: AzureAIClient,
                  account_agent: AccountAgent,
                  transaction_agent: TransactionHistoryAgent,
-                 payment_agent: PaymentAgent
+                 payment_agent: PaymentAgent,
+                 company_web_agent: CompanyWebAgent
                                 ):
       self.azure_ai_client = azure_ai_client
       self.account_agent = account_agent
       self.transaction_agent = transaction_agent
       self.payment_agent = payment_agent
+      self.company_web_agent = company_web_agent
       self.workflow = None  # Will be initialized in async method
 
     async def initialize(self, checkpoint_storage: CheckpointStorage ):
@@ -143,7 +154,7 @@ class HandoffOrchestrator:
             client=self.azure_ai_client,
             instructions=HandoffOrchestrator.triage_instructions,
             name="TriageAgent",
-            tools=[handoff_to_account_agent, handoff_to_transaction_history_agent, handoff_to_payment_agent]
+            tools=[handoff_to_account_agent, handoff_to_transaction_history_agent, handoff_to_payment_agent, handoff_to_company_web_agent]
         )
       
        # Register handoff tools in default_options so CustomHandoffBuilder sees them
@@ -151,24 +162,27 @@ class HandoffOrchestrator:
         handoff_to_account_agent,
         handoff_to_transaction_history_agent,
         handoff_to_payment_agent,
+        handoff_to_company_web_agent,
     ]
       
       account_agent = await self.account_agent.build_af_agent()
       transaction_agent = await self.transaction_agent.build_af_agent()
       payment_agent = await self.payment_agent.build_af_agent()
+      company_web_agent = await self.company_web_agent.build_af_agent()
       
       self.workflow = (
         CustomHandoffBuilder(
             name="banking_assistant_handoff",
-            participants=[triage_agent,account_agent,transaction_agent,payment_agent],
+            participants=[triage_agent,account_agent,transaction_agent,payment_agent,company_web_agent],
         )
         .with_start_agent(triage_agent)
         .add_handoff(
-            triage_agent, [account_agent, transaction_agent, payment_agent]
+            triage_agent, [account_agent, transaction_agent, payment_agent, company_web_agent]
         )  # Triage can hand off to specialists
         .add_handoff(account_agent, [triage_agent])  # Specialists can hand off back to triage
         .add_handoff(transaction_agent, [triage_agent])  # Specialists can hand off back to triage
         .add_handoff(payment_agent, [triage_agent])  # Specialists can hand off
+        .add_handoff(company_web_agent, [triage_agent])  # Specialists can hand off
         .with_termination_condition(
             # Terminate after 20 user messages 
             # Count only USER role messages to avoid counting agent responses
